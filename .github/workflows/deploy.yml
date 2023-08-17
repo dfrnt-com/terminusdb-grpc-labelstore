@@ -1,0 +1,34 @@
+name: Build and Deploy to AZ on production
+on:
+  push:
+    tags:
+      - "v*"
+
+  workflow_dispatch:
+    inputs:
+      input:
+        description: "Rebuild reason"
+        required: false
+        default: "Manual build and push"
+
+jobs:
+  setup-build-publish-deploy:
+    name: Setup, Build, Publish, and Deploy
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Build
+      run: |
+        docker build . -t "${{ vars.AZURE_REGISTRY_LOGIN_SERVER }}/dfrnt-user-api:${GITHUB_REF##*/}"
+
+    - uses: azure/docker-login@v1
+      with:
+        login-server: ${{ vars.AZURE_REGISTRY_LOGIN_SERVER }}
+        username: ${{ secrets.ACR_USERNAME }}
+        password: ${{ secrets.ACR_PASS }}
+
+    - name: Push to docker
+      run: docker push "${{ vars.AZURE_REGISTRY_LOGIN_SERVER }}/dfrnt-user-api:${GITHUB_REF##*/}"
