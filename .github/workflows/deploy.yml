@@ -13,7 +13,7 @@ on:
 
 env:
   AWS_REGION : "eu-north-1"
-  ECR_REPO: "${{ secrets.AWS_ACCOUNT_NONPROD }}.dkr.ecr.eu-north-1.amazonaws.com/dfrnt-nonprod/twinfox/homepage"
+  ECR_REPO: "${{ secrets.AWS_ACCOUNT_NONPROD }}.dkr.ecr.eu-north-1.amazonaws.com/dfrnt-nonprod/terminusdb/grpc-labelstore"
   IMAGE_TAG: "latest"
 
 permissions:
@@ -46,9 +46,7 @@ jobs:
       run: |
         docker build . -t "$ECR_REPO:$IMAGE_TAG"
         docker push "$ECR_REPO:$IMAGE_TAG"
-        echo "IMAGE $IMAGE_TAG push to $ECR_REGISTRY/$ECR_REPOSITORY"
-        echo "image_tag=$IMAGE_TAG" 
-        echo "full_image=$ECR_REPO:$IMAGE_TAG"
+        echo "Push to $ECR_REPO:$IMAGE_TAG"
 
     - name: Build
       run: |
