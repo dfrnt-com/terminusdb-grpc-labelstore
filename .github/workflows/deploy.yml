@@ -28,10 +28,6 @@ jobs:
 
     - name: Checkout
       uses: actions/checkout@v2
-        
-    - name: Build
-      run: |
-        docker build . -t "${{ vars.ECR_REPO }}:${GITHUB_REF##*/}"
 
     - name: configure aws credentials
       uses: aws-actions/configure-aws-credentials@v3
