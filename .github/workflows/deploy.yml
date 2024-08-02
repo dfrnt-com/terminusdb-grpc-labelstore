@@ -11,6 +11,15 @@ on:
         required: false
         default: "Manual build and push"
 
+env:
+  AWS_REGION : "eu-north-1"
+  ECR_REPO: "${{ secrets.AWS_ACCOUNT_NONPROD }}.dkr.ecr.eu-north-1.amazonaws.com/dfrnt-nonprod/twinfox/homepage"
+  IMAGE_TAG: "latest"
+
+permissions:
+  id-token: write # This is required for requesting the JWT for use with AWS
+  contents: read  # This is required for actions/checkout
+
 jobs:
   setup-build-publish-deploy:
     name: Setup, Build, Publish, and Deploy
@@ -19,6 +28,31 @@ jobs:
 
     - name: Checkout
       uses: actions/checkout@v2
+        
+    - name: Build
+      run: |
+        docker build . -t "${{ vars.ECR_REPO }}:${GITHUB_REF##*/}"
+
+    - name: configure aws credentials
+      uses: aws-actions/configure-aws-credentials@v3
+      with:
+        role-to-assume: "arn:aws:iam::${{ secrets.AWS_ACCOUNT_NONPROD }}:role/github-actions-ecr-dfrnt-com-terminusdb-grpc-labelstore"
+        role-session-name: push-ecr-dfrnt-com-terminusdb-grpc-labelstore
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v2
+
+    - name: Build, tag, and push image to Amazon ECR
+      id: build-publish
+      shell: bash
+      run: |
+        docker build . -t "$ECR_REPO:$IMAGE_TAG"
+        docker push "$ECR_REPO:$IMAGE_TAG"
+        echo "IMAGE $IMAGE_TAG push to $ECR_REGISTRY/$ECR_REPOSITORY"
+        echo "image_tag=$IMAGE_TAG" 
+        echo "full_image=$ECR_REPO:$IMAGE_TAG"
 
     - name: Build
       run: |
